@@ -45,18 +45,8 @@ const INITIAL_BALANCES = {
   "Chase Checking": 0,
 };
 
-const now = new Date();
-const y = now.getFullYear();
-const m = String(now.getMonth() + 1).padStart(2, "0");
-const pm = String(now.getMonth()).padStart(2, "0") || "12";
-const py = now.getMonth() === 0 ? y - 1 : y;
-
-function d(day, month = m) { return `${y}-${month}-${String(day).padStart(2,"0")}`; }
-
 const SAMPLE_TRANSACTIONS = [];
-
 const SAMPLE_INCOME = [];
-
 const SAMPLE_TRANSFERS = [];
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
@@ -90,7 +80,6 @@ try {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n); }
 function today() { return new Date().toISOString().split("T")[0]; }
-function monthLabel(dateStr) { const d = new Date(dateStr + "T00:00:00"); return d.toLocaleString("default", { month: "short", year: "2-digit" }); }
 function thisMonth(dateStr) {
   const d = new Date(dateStr + "T00:00:00"); const n = new Date();
   return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth();
@@ -105,17 +94,14 @@ export default function App() {
   const [transactions, setTransactions] = useState(() => loadState("fin_tx", SAMPLE_TRANSACTIONS));
   const [income, setIncome] = useState(() => loadState("fin_income", SAMPLE_INCOME));
   const [transfers, setTransfers] = useState(() => loadState("fin_transfers", SAMPLE_TRANSFERS));
-  const [balances, setBalances] = useState(() => loadState("fin_balances", INITIAL_BALANCES));
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("All");
   const [filterAcct, setFilterAcct] = useState("All");
-  const [sideOpen, setSideOpen] = useState(false);
 
   useEffect(() => { saveState("fin_dark", dark); }, [dark]);
   useEffect(() => { saveState("fin_tx", transactions); }, [transactions]);
   useEffect(() => { saveState("fin_income", income); }, [income]);
   useEffect(() => { saveState("fin_transfers", transfers); }, [transfers]);
-  useEffect(() => { saveState("fin_balances", balances); }, [balances]);
 
   // Compute real balances from seed + all activity
   const computedBalances = useMemo(() => {
@@ -306,8 +292,6 @@ function Dashboard({ theme, S, transactions, income, transfers, computedBalances
     transactions.filter(t => thisMonth(t.date)).forEach(t => { m[t.category] = (m[t.category] || 0) + t.amount; });
     return Object.entries(m).sort((a, b) => b[1] - a[1]);
   }, [transactions]);
-
-  const biggestCat = catSpend[0];
 
   const pieData = catSpend.slice(0, 6).map(([name, value]) => ({ name, value: +value.toFixed(2) }));
 
@@ -852,8 +836,6 @@ function Analytics({ theme, S, transactions, income, computedBalances }) {
     name: c.replace("Credit Card", "CC"),
     debt: +Math.abs(Math.min(0, computedBalances[c] || 0)).toFixed(2),
   }));
-
-  const CHART_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#8b5cf6"];
 
   return (
     <div>
